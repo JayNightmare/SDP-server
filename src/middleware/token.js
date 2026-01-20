@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-const { JWT_SECRET } = require("../config/config");
+import { JWT_SECRET } from "../config/config.js";
 
 const secret = JWT_SECRET;
 

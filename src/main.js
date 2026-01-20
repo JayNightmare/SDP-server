@@ -7,7 +7,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import Router from "express";
-const { PORT, DB_URI } = require("./config/config");
+import { PORT, DB_URI } from "./config/config.js";
 
 const app = express();
 const port = PORT;

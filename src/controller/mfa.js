@@ -4,7 +4,7 @@ import * as mfa from "../middleware/mfa.js";
 import Clinician from "../models/Clinician.js";
 import Patient from "../models/Patient.js";
 import { createToken } from "../middleware/token.js";
-const { JWT_SECRET } = require("../config/config");
+import { JWT_SECRET } from "../config/config.js";
 
 /**
  *
