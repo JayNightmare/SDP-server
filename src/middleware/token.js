@@ -1,13 +1,16 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
+const { JWT_SECRET } = require("../config/config");
 
-const secret = process.env.JWT_SECRET;
+const secret = JWT_SECRET;
 
 const createToken = (userID) => {
     // Check user type
     let type = "";
     if (userID.length === 10) {
         type = "patient";
-    } else { type = "clinician"; }
+    } else {
+        type = "clinician";
+    }
 
     // Create token
     const token = jwt.sign({ id: userID, type }, secret, {
@@ -26,7 +29,7 @@ const VerifyToken = (req, res, next) => {
 
     jwt.verify(token, secret, (err, user) => {
         if (err) {
-            return res.status(422).json({ err })
+            return res.status(422).json({ err });
         }
         req.id = user.id;
         req.type = user.type;

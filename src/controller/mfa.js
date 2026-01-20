@@ -4,13 +4,14 @@ import * as mfa from "../middleware/mfa.js";
 import Clinician from "../models/Clinician.js";
 import Patient from "../models/Patient.js";
 import { createToken } from "../middleware/token.js";
+const { JWT_SECRET } = require("../config/config");
 
 /**
- * 
- * @param {Request} req 
- * @param {Response} res 
+ *
+ * @param {Request} req
+ * @param {Response} res
  */
-const Setup2FA = async (req, res) => { 
+const Setup2FA = async (req, res) => {
     // get user
     try {
         console.log(`type: ${req.type}`);
@@ -18,7 +19,7 @@ const Setup2FA = async (req, res) => {
             case "patient":
                 var user = await Patient.findOne({ id: req.id });
                 break;
-        
+
             case "clinician":
                 var user = await Clinician.findOne({ id: req.id });
                 break;
@@ -41,26 +42,28 @@ const Setup2FA = async (req, res) => {
         // update user object in database with secret
         user.mfa = {
             secret: base32,
-            verified: false
+            verified: false,
         };
 
         try {
             await user.save();
-            return res.status(201).json({ message: "MFA secret saved", secret: base32 });
-        } catch(err) {
+            return res
+                .status(201)
+                .json({ message: "MFA secret saved", secret: base32 });
+        } catch (err) {
             console.log(err);
             return res.status(422).json({ message: "Error saving MFA secret" });
         }
     } catch (err) {
-        console.log("ERR:"+ err);
+        console.log("ERR:" + err);
         return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 /**
- * 
- * @param {Request} req 
- * @param {Response} res 
+ *
+ * @param {Request} req
+ * @param {Response} res
  */
 const Verify2FA = async (req, res) => {
     // Extract token and credentials from the request
@@ -73,25 +76,32 @@ const Verify2FA = async (req, res) => {
 
         if (token) {
             // Verify the JWT token
-            jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+            jwt.verify(token, JWT_SECRET, async (err, decoded) => {
                 if (err) {
-                    return res.status(401).json({ message: "Invalid or expired token" });
+                    return res
+                        .status(401)
+                        .json({ message: "Invalid or expired token" });
                 }
                 // Fetch user based on decoded token
-                user = decoded.type === "patient"
-                    ? await Patient.findOne({ id: decoded.id })
-                    : await Clinician.findOne({ id: decoded.id });
+                user =
+                    decoded.type === "patient"
+                        ? await Patient.findOne({ id: decoded.id })
+                        : await Clinician.findOne({ id: decoded.id });
 
                 if (!user) {
                     return res.status(404).json({ message: "User not found" });
                 }
 
                 if (!code) {
-                    return res.status(401).json({ message: "Missing MFA code." })
+                    return res
+                        .status(401)
+                        .json({ message: "Missing MFA code." });
                 }
 
-                if(user.mfa?.verified) {
-                    return res.status(422).json({ message: "MFA already verified" });
+                if (user.mfa?.verified) {
+                    return res
+                        .status(422)
+                        .json({ message: "MFA already verified" });
                 }
 
                 // Proceed to validate MFA
@@ -100,13 +110,16 @@ const Verify2FA = async (req, res) => {
         } else {
             // Ensure both `id` and `password` are provided
             if (!id || !password) {
-                return res.status(400).json({ message: "User credentials are required" });
+                return res
+                    .status(400)
+                    .json({ message: "User credentials are required" });
             }
 
             // Fetch user based on credentials
-            user = id.length === 10
-                ? await Patient.findOne({ id })
-                : await Clinician.findOne({ id });
+            user =
+                id.length === 10
+                    ? await Patient.findOne({ id })
+                    : await Clinician.findOne({ id });
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
